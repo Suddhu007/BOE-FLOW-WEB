@@ -1,14 +1,42 @@
 # BOE FLOW Web
 
-New web application for BOE FLOW.
+A new production-oriented web application replacing the Streamlit UI while preserving the existing Python BOE/HSN business logic.
 
-This repository is the replacement frontend for the existing Streamlit application in `Suddhu007/Customs-boe-portal`.
+## Stack
+- Frontend: React + Vite
+- Backend: FastAPI + Python
+- BOE parsing: migrated from `Customs-boe-portal`
+- HSN lookup: ICEGATE Trade Guide integration
+- Excel export: migrated existing exporter
+- Frontend hosting: Cloudflare Pages or Vercel
+- Backend hosting: Render or another FastAPI host
 
-## Architecture
+## Local development
+Frontend:
+```bash
+npm install
+npm run dev
+```
 
-- React + Vite
-- Tailwind CSS
-- FastAPI backend (to be added)
-- Existing Python BOE/HSN/duty logic will be migrated separately
+Backend:
+```bash
+cd backend
+python -m venv .venv
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
+```
 
-The original Streamlit repository remains unchanged.
+Set `VITE_API_URL=http://localhost:8000` for the frontend when the API is not on the default URL.
+
+## Migration status
+- Responsive React shell: complete
+- BOE PDF upload and processing API: connected
+- Existing BOE parser: migrated unchanged
+- Existing Excel exporter: migrated
+- ICEGATE HSN search: connected
+- BCD/SWS/IGST values: sourced from the migrated BOE parser's printed ICEGATE item-duty fields
+- E-Way Bill grouped summary: connected
+- Authentication/database: not yet added
+- Production domain/hosting: not yet configured
+
+The original Streamlit repository is intentionally left unchanged.
