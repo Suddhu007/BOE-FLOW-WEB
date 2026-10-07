@@ -11,9 +11,15 @@ from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 
-from core.parser import process_complete_boe_portal
-from core.exporter import build_excel
-from core.icegate_hsn import fetch_icegate_hsn, get_cached_hsn, cache_hsn_result
+try:
+    from .core.parser import process_complete_boe_portal
+    from .core.exporter import build_excel
+    from .core.icegate_hsn import fetch_icegate_hsn, get_cached_hsn, cache_hsn_result
+except ImportError:
+    # Supports Render, where main.py is imported as a top-level module.
+    from core.parser import process_complete_boe_portal
+    from core.exporter import build_excel
+    from core.icegate_hsn import fetch_icegate_hsn, get_cached_hsn, cache_hsn_result
 
 app = FastAPI(
     title="BOE FLOW API",
