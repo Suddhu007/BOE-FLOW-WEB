@@ -2,7 +2,7 @@ import { Link, Route, Routes } from "react-router-dom";
 import { ArrowRight, FileText, Search, Calculator, ShieldCheck, Menu, X, Upload, Download, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_URL ?? (import.meta.env.DEV ? "http://localhost:8000" : "");
 const navItems = [["Process BOE","/process-boe"],["HSN Search","/hsn-search"],["Duty Calculator","/duty-calculator"]];
 
 function Layout({children}){const[open,setOpen]=useState(false);return <div className="site-shell">
