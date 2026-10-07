@@ -813,21 +813,68 @@ function esc(v){return String(v==null?"":v).replace(/[&<>'"]/g,function(c){retur
 function money(v){var n=Number(v);return Number.isFinite(n)?"₹"+n.toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2}):esc(v||"—")}
 function pick(o,keys){for(var i=0;i<keys.length;i++){var k=keys[i];if(o&&o[k]!==undefined&&o[k]!==null&&o[k]!=="")return o[k]}return ""}
 function renderBOEResult(data){
-latestBOE=data;var h=data.header||{},items=Array.isArray(data.items)?data.items:[];
+latestBOE=data;
+var h=data.header||{},items=Array.isArray(data.items)?data.items:[],grouped=Array.isArray(data.grouped)?data.grouped:[];
+var money=function(v){var n=Number(v);return Number.isFinite(n)?"₹"+n.toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2}):"—"};
+var val=function(keys){for(var i=0;i<keys.length;i++){var v=h[keys[i]];if(v!==undefined&&v!==null&&v!=="")return v}return ""};
+var esc2=esc;
+var boe=val(["BOE Number","BE Number"]),date=val(["BOE Date","BE Date"]),port=val(["Port Code","Port"]);
 document.getElementById("boe-result").classList.remove("hidden");
 document.getElementById("boe-result-sub").textContent=(data.filename||"BOE PDF")+" • "+items.length+" line item"+(items.length===1?"":"s")+" extracted successfully.";
-var cards=[["BE Number",pick(h,["BOE Number","BE Number"])],["BE Date",pick(h,["BOE Date","BE Date"])],["Port Code",pick(h,["Port Code","Port"])],["Importer",pick(h,["Importer Name","Importer"])],["GSTIN",pick(h,["Importer GSTIN","GSTIN"])],["Invoice Number",pick(h,["Invoice Number","Invoice No"])],["Assessable Value",money(pick(h,["Assessable Value","Total Assessable Value"]))],["Total Duty",money(pick(h,["Total Duty","Total Duty Amount"]))]];
-var out='<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">';
-cards.forEach(function(c){out+='<div class="rounded-2xl bg-slate-50 border border-slate-200 p-4"><span class="text-[10px] uppercase tracking-wider font-bold text-slate-500">'+c[0]+'</span><div class="mt-1 text-sm font-bold text-slate-900 break-words">'+esc(c[1]||"—")+'</div></div>'});
-out+='</div><div class="overflow-x-auto border border-slate-200 rounded-2xl custom-scroll"><table class="w-full text-left text-xs"><thead><tr class="bg-slate-50 text-slate-600 uppercase tracking-wider text-[10px]"><th class="py-3 px-3">Item</th><th class="py-3 px-3">HSN</th><th class="py-3 px-3">Description</th><th class="py-3 px-3">Qty</th><th class="py-3 px-3">UQC</th><th class="py-3 px-3">Assessable</th><th class="py-3 px-3">BCD</th><th class="py-3 px-3">IGST</th><th class="py-3 px-3">Total Duty</th></tr></thead><tbody class="divide-y divide-slate-100">';
-items.forEach(function(r){out+='<tr class="hover:bg-brand-50/40"><td class="py-3 px-3 font-mono">'+esc(pick(r,["Item No"]))+'</td><td class="py-3 px-3 font-mono font-bold text-brand-700">'+esc(pick(r,["HSN Code","CTH"]))+'</td><td class="py-3 px-3 min-w-[260px]">'+esc(pick(r,["Description","Item Description"]))+'</td><td class="py-3 px-3 font-mono">'+esc(pick(r,["Quantity","Qty"]))+'</td><td class="py-3 px-3 font-mono">'+esc(pick(r,["UQC"]))+'</td><td class="py-3 px-3 font-mono">'+money(pick(r,["Assessable Value (CIF INR)","Assessable Value"]))+'</td><td class="py-3 px-3 font-mono">'+money(pick(r,["BCD Amount"]))+'</td><td class="py-3 px-3 font-mono">'+money(pick(r,["IGST Amount"]))+'</td><td class="py-3 px-3 font-mono font-bold">'+money(pick(r,["Item Total Duty","Total Duty"]))+'</td></tr>'});
-out+='</tbody></table></div>';document.getElementById("boe-result-content").innerHTML=out;
+
+var summary=[
+["BOE Number",boe,"file-text"],["BOE Date",date,"calendar-days"],["Port Code",port,"map-pin"],
+["Invoice",val(["Invoice Number","Invoice No"]),"receipt"],["Invoice Amount",val(["Invoice Amount","Invoice Value"]),"indian-rupee"],
+["Gross Weight",val(["Gross Weight (KGS)","Gross Weight"])?val(["Gross Weight (KGS)","Gross Weight"])+" KGS":"","weight"],
+["BCD",money(val(["BCD Total"])),"landmark"],["SWS",money(val(["SWS Total"])),"percent"],
+["IGST",money(val(["IGST Total"])),"badge-percent"],["Total Duty",money(val(["Total Duty"])),"calculator"]
+];
+var out='<div class="space-y-6">';
+out+='<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-brand-900 to-brand-700 text-white shadow-deep">';
+out+='<div><div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-teal-200"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Processed successfully</div><h2 class="text-2xl sm:text-3xl font-extrabold mt-2">BOE '+esc2(boe||"Result")+'</h2><p class="text-sm text-teal-100/80 mt-1">'+esc2(val(["Supplier Name","Importer Name","Importer"]))+' '+(port?"• "+esc2(port):"")+' '+(date?"• "+esc2(date):"")+'</p></div>';
+out+='<div class="flex flex-wrap gap-2"><button type="button" onclick="document.getElementById(\'boe-result\').scrollIntoView({behavior:\'smooth\',block:\'start\'})" class="px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-xs font-bold hover:bg-white/20">Review Data</button><button id="boe-excel-download-top" type="button" class="px-4 py-2 rounded-xl bg-white text-brand-800 text-xs font-bold hover:bg-teal-50">Download Excel</button></div></div>';
+out+='<div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">';
+summary.forEach(function(s){out+='<div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-card min-w-0"><div class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-500"><i data-lucide="'+s[2]+'" class="w-3.5 h-3.5 text-brand-600"></i>'+s[0]+'</div><div class="mt-2 text-sm sm:text-base font-extrabold text-slate-900 break-words">'+esc2(s[1]||"—")+'</div></div>'});
+out+='</div>';
+
+var details=[
+["Supplier / Exporter",val(["Supplier Name","Exporter Name","Supplier"]),["Importer",val(["Importer Name","Importer"])],
+["CHA Code",val(["CHA Code","CHA"]),["IEC",val(["IEC","Importer IEC","IEC Number"])],
+["GSTIN",val(["Importer GSTIN","GSTIN"]),["Invoice Number",val(["Invoice Number","Invoice No"])],
+["Invoice Date",val(["Invoice Date"]),["Currency",val(["Currency","Invoice Currency"])],
+["Exchange Rate",val(["Exchange Rate"]),["Country of Origin",val(["Country of Origin","Country of Origin Code"])],
+["Port",port],["Gross Weight",val(["Gross Weight (KGS)","Gross Weight"])],
+["Net Weight",val(["Net Weight (KGS)","Net Weight"]),["Total Packages",val(["Total Packages","Packages"])]
+];
+out+='<section class="bg-white rounded-3xl border border-slate-200 shadow-card overflow-hidden"><div class="px-5 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between"><div><h3 class="font-extrabold text-slate-900">Shipment & Customs Details</h3><p class="text-xs text-slate-500 mt-1">Key fields extracted directly from the Bill of Entry.</p></div><span class="text-[10px] font-bold uppercase tracking-wider text-brand-700 bg-brand-50 px-3 py-1.5 rounded-full">Verified extraction</span></div><div class="grid sm:grid-cols-2 lg:grid-cols-4">';
+details.forEach(function(d){out+='<div class="p-4 border-b border-slate-100 sm:border-r"><span class="text-[10px] uppercase tracking-wider font-bold text-slate-400">'+d[0]+'</span><div class="mt-1 text-sm font-semibold text-slate-800 break-words">'+esc2(d[1]||"—")+'</div></div>'});
+out+='</div></section>';
+
+function table(title,subtitle,rows,cols,moneyCols){
+var x='<section class="bg-white rounded-3xl border border-slate-200 shadow-card overflow-hidden"><div class="px-5 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between gap-3"><div><h3 class="font-extrabold text-slate-900">'+title+'</h3><p class="text-xs text-slate-500 mt-1">'+subtitle+'</p></div><span class="text-xs font-bold text-slate-500">'+rows.length+' record'+(rows.length===1?"":"s")+'</span></div>';
+x+='<div class="overflow-x-auto custom-scroll"><table class="min-w-full text-left text-xs"><thead><tr class="bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px]">';
+cols.forEach(function(c){x+='<th class="py-3 px-4 whitespace-nowrap font-extrabold">'+c+'</th>'});x+='</tr></thead><tbody class="divide-y divide-slate-100">';
+rows.forEach(function(r,i){x+='<tr class="hover:bg-brand-50/40 transition-colors">';
+cols.forEach(function(c){var v=r[c];var display=(v===undefined||v===null||v==="")?"—":(moneyCols.indexOf(c)>=0&&typeof v==="number"?money(v):esc2(v));x+='<td class="py-3.5 px-4 align-top '+(moneyCols.indexOf(c)>=0?"font-mono":"")+'">'+display+'</td>'});x+='</tr>'});
+if(!rows.length)x+='<tr><td colspan="'+cols.length+'" class="py-10 text-center text-slate-400">No records returned.</td></tr>';
+x+='</tbody></table></div></section>';return x;
+}
+out+=table("Line Items","Complete item-wise extraction from the BOE.",items,["Item No","HSN Code","Description","Country of Origin Code","Quantity","UQC","Assessable Value (CIF INR)","BCD Amount","SWS Amount","IGST Amount","Item Total Duty"],["Assessable Value (CIF INR)","BCD Amount","SWS Amount","IGST Amount","Item Total Duty"]);
+out+=table("E-Way Bill Summary","Grouped by HSN and UQC for downstream E-Way Bill preparation.",grouped,["HSN Code","UQC","Quantity","Assessable Value (CIF INR)","GST Taxable Value (for E-Way)","Calculated IGST"],["Assessable Value (CIF INR)","GST Taxable Value (for E-Way)","Calculated IGST"]);
+
+var keys=Object.keys(h);
+out+='<details class="bg-white rounded-3xl border border-slate-200 shadow-card"><summary class="cursor-pointer px-5 sm:px-6 py-4 font-extrabold text-slate-900">View all extracted BOE fields <span class="text-xs font-normal text-slate-500 ml-2">'+keys.length+' fields</span></summary><div class="grid sm:grid-cols-2 lg:grid-cols-3 border-t border-slate-100">';
+keys.forEach(function(k){out+='<div class="p-4 border-b border-slate-100"><div class="text-[10px] uppercase tracking-wider font-bold text-slate-400">'+esc2(k)+'</div><div class="mt-1 text-sm text-slate-800 break-words">'+esc2(h[k]??"—")+'</div></div>'});
+out+='</div></details></div>';
+document.getElementById("boe-result-content").innerHTML=out;
 if(window.lucide)lucide.createIcons();
-var av=Number(pick(h,["Assessable Value","Total Assessable Value"]))||0,first=items[0]||{};
-if(av)document.getElementById("calcAssessable").value=av;
-document.getElementById("calcBcdRate").value=Number(pick(first,["BCD Rate (%)","BCD Rate"]))||document.getElementById("calcBcdRate").value;
-document.getElementById("calcIgstRate").value=Number(pick(first,["IGST Rate (%)","IGST Rate"]))||document.getElementById("calcIgstRate").value;
-if(typeof calculateDuties==="function")calculateDuties();setPipelineStep(2);document.getElementById("boe-result").scrollIntoView({behavior:"smooth",block:"start"});
+var av=Number(val(["Assessable Value","Total Assessable Value"]))||0,first=items[0]||{};
+if(av&&document.getElementById("calcAssessable"))document.getElementById("calcAssessable").value=av;
+if(document.getElementById("calcBcdRate"))document.getElementById("calcBcdRate").value=Number(first["BCD Rate (%)"]||first["BCD Rate"])||document.getElementById("calcBcdRate").value;
+if(document.getElementById("calcIgstRate"))document.getElementById("calcIgstRate").value=Number(first["IGST Rate (%)"]||first["IGST Rate"])||document.getElementById("calcIgstRate").value;
+if(typeof calculateDuties==="function")calculateDuties();
+var dl=document.getElementById("boe-excel-download-top");if(dl)dl.addEventListener("click",downloadBOEExcel);
+setPipelineStep(2);document.getElementById("boe-result").scrollIntoView({behavior:"smooth",block:"start"});
 }
 async function processRealBOE(file){
 if(file.size>25*1024*1024){alert("PDF exceeds the 25 MB upload limit.");return}
@@ -852,8 +899,7 @@ live.innerHTML='<div class="rounded-2xl border border-brand-200 bg-brand-50/50 p
 };
 document.addEventListener("DOMContentLoaded",function(){
 var input=document.getElementById("hsnFilterInput");if(input)input.addEventListener("keydown",function(e){if(e.key==="Enter"&&/^\d{4,8}$/.test(input.value.trim()))window.liveHSN(input.value.trim())});
-var download=document.getElementById("boe-excel-download");if(download)download.addEventListener("click",function(){if(!latestBOE?.excel_base64)return;var bytes=Uint8Array.from(atob(latestBOE.excel_base64),function(c){return c.charCodeAt(0)}),blob=new Blob([bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(latestBOE.filename||"BOE").replace(/\.pdf$/i,"")+"_BOE_FLOW.xlsx";a.click();URL.revokeObjectURL(a.href)});
-});
+function downloadBOEExcel(){if(!latestBOE?.excel_base64)return;var bytes=Uint8Array.from(atob(latestBOE.excel_base64),function(c){return c.charCodeAt(0)}),blob=new Blob([bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="BOE_"+((latestBOE.header||{})["BOE Number"]||"Report")+"_EWay_Data.xlsx";a.click();URL.revokeObjectURL(a.href)}
 })();
 </script>
 </body>
