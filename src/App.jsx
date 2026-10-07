@@ -1,119 +1,24 @@
 import { Link, Route, Routes } from "react-router-dom";
-import { ArrowRight, FileText, Search, Calculator, ShieldCheck, Menu, X } from "lucide-react";
+import { ArrowRight, FileText, Search, Calculator, ShieldCheck, Menu, X, Upload, Download, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 
-const navItems = [
-  ["Process BOE", "/process-boe"],
-  ["HSN Search", "/hsn-search"],
-  ["Duty Calculator", "/duty-calculator"],
-];
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const navItems = [["Process BOE","/process-boe"],["HSN Search","/hsn-search"],["Duty Calculator","/duty-calculator"]];
 
-function Layout({ children }) {
-  const [open, setOpen] = useState(false);
+function Layout({children}){const[open,setOpen]=useState(false);return <div className="site-shell">
+<header className="topbar"><Link to="/" className="brand" onClick={()=>setOpen(false)}><span className="brand-mark">BOE</span><span><strong>BOE FLOW</strong><small>Customs Automation</small></span></Link><nav className={open?"nav open":"nav"}>{navItems.map(([label,href])=><Link key={href} to={href} onClick={()=>setOpen(false)}>{label}</Link>)}<Link className="nav-cta" to="/process-boe" onClick={()=>setOpen(false)}>Start Processing <ArrowRight size={16}/></Link></nav><button className="menu-button" aria-label={open?"Close menu":"Open menu"} onClick={()=>setOpen(!open)}>{open?<X size={21}/>:<Menu size={21}/>}</button></header>
+<main>{children}</main><footer className="footer"><div><strong>BOE FLOW</strong><span>Customs BOE Processing & Automated E-Way Bill Reconciliation</span></div><div className="footer-links"><Link to="/terms">Terms</Link><Link to="/privacy">Privacy</Link><Link to="/contact">Contact</Link></div><div className="footer-bottom">© 2026 BOE FLOW. All rights reserved.</div></footer></div>}
 
-  return (
-    <div className="site-shell">
-      <header className="topbar">
-        <Link to="/" className="brand" onClick={() => setOpen(false)}>
-          <span className="brand-mark">BOE</span>
-          <span>
-            <strong>BOE FLOW</strong>
-            <small>Customs Automation</small>
-          </span>
-        </Link>
+function Home(){return <><section className="hero"><div className="hero-copy"><div className="eyebrow"><ShieldCheck size={15}/> Customs workflow, simplified</div><h1>Bill of Entry processing without the paperwork headache.</h1><p>Process BOE documents, review HSN and customs duties, and prepare E-Way Bill data from one clean workspace.</p><div className="hero-actions"><Link className="button primary" to="/process-boe">Process a BOE <ArrowRight size={18}/></Link><Link className="button secondary" to="/hsn-search">Search HSN</Link></div></div><div className="hero-panel"><div className="panel-label">BOE FLOW</div>{[["Upload Bill of Entry",FileText],["Extract & review",Search],["Calculate duty",Calculator],["Prepare E-Way data",ShieldCheck]].map(([t,I],i)=><div className="flow-row" key={t}><I/><span>{t}</span><b>0{i+1}</b></div>)}</div></section><section className="section"><div className="section-heading"><span className="eyebrow">One workspace</span><h2>Everything you need for import documentation.</h2></div><div className="feature-grid"><Feature icon={<FileText/>} title="BOE Processing" text="Upload a Bill of Entry and review extracted document data in a structured format." href="/process-boe"/><Feature icon={<Search/>} title="HSN Search" text="Search tariff headings and review applicable customs information." href="/hsn-search"/><Feature icon={<Calculator/>} title="Duty Review" text="Review assessable value, BCD, SWS, IGST and total payable duty." href="/duty-calculator"/></div></section></>}
+function Feature({icon,title,text,href}){return <article className="feature-card"><div className="feature-icon">{icon}</div><h3>{title}</h3><p>{text}</p><Link to={href}>Explore <ArrowRight size={15}/></Link></article>}
 
-        <nav className={open ? "nav open" : "nav"}>
-          {navItems.map(([label, href]) => (
-            <Link key={href} to={href} onClick={() => setOpen(false)}>{label}</Link>
-          ))}
-          <Link className="nav-cta" to="/process-boe" onClick={() => setOpen(false)}>
-            Start Processing <ArrowRight size={16} />
-          </Link>
-        </nav>
+function ProcessBOE(){const[file,setFile]=useState(null),[loading,setLoading]=useState(false),[error,setError]=useState(""),[result,setResult]=useState(null);const process=async()=>{if(!file)return;setLoading(true);setError("");try{const fd=new FormData();fd.append("file",file);const r=await fetch(API_URL+"/api/boe/process",{method:"POST",body:fd});const d=await r.json();if(!r.ok)throw Error(d.detail||"Processing failed");setResult(d)}catch(e){setError(e.message)}finally{setLoading(false)}};if(result)return <BOEResult result={result} onNew={()=>{setResult(null);setFile(null)}}/>;return <Page title="Process Bill of Entry" subtitle="Upload your BOE PDF and review the extracted customs information."><div className="upload-card"><Upload size={38}/><h2>Upload your BOE</h2><p>PDF only, up to 25 MB.</p><label className="upload-zone"><input type="file" accept=".pdf,application/pdf" onChange={e=>setFile(e.target.files?.[0]||null)}/><strong>{file?file.name:"Choose PDF"}</strong><span>Click to select a Bill of Entry</span></label>{error&&<div className="error">{error}</div>}<button className="button primary" disabled={!file||loading} onClick={process}>{loading?"Processing…":"Process BOE"} <ArrowRight size={17}/></button></div></Page>}
 
-        <button className="menu-button" aria-label={open ? "Close menu" : "Open menu"} onClick={() => setOpen(!open)}>
-          {open ? <X size={21} /> : <Menu size={21} />}
-        </button>
-      </header>
+function BOEResult({result,onNew}){const h=result.header||{},items=result.items||[],grouped=result.grouped||[];const money=n=>Number(n||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});const download=()=>{const bin=atob(result.excel_base64),b=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)b[i]=bin.charCodeAt(i);const blob=new Blob([b],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="BOE_"+(h["BOE Number"]||"Report")+"_EWay_Data.xlsx";a.click();URL.revokeObjectURL(a.href)};return <section className="page result-page"><div className="result-actions"><button className="button secondary" onClick={onNew}>← Process another</button><button className="button primary" onClick={download}><Download size={16}/> Download Excel</button></div><div className="page-heading"><span className="eyebrow"><CheckCircle2 size={15}/> Processed successfully</span><h1>BOE {h["BOE Number"]||""}</h1><p>{h["Supplier Name"]||"Supplier"} · {h["Port Code"]||"Port"} · {h["BOE Date"]||""}</p></div><div className="summary-grid">{[["BOE Number",h["BOE Number"]],["BOE Date",h["BOE Date"]],["Port Code",h["Port Code"]],["Invoice",h["Invoice Number"]],["Invoice Amount",h["Invoice Amount"]],["Gross Weight",h["Gross Weight (KGS)"]?h["Gross Weight (KGS)"]+" KGS":""],["BCD",money(h["BCD Total"])],["SWS",money(h["SWS Total"])],["IGST",money(h["IGST Total"])],["Total Duty",money(h["Total Duty"])]].map(([k,v])=><div className="summary-card" key={k}><span>{k}</span><strong>{v||"—"}</strong></div>)}</div><DataTable title="Line Items" rows={items} columns={["Item No","HSN Code","Description","Country of Origin Code","Quantity","UQC","Assessable Value (CIF INR)","BCD Amount","SWS Amount","IGST Amount","Item Total Duty"]} money={money}/><DataTable title="E-Way Bill Summary" rows={grouped} columns={["HSN Code","UQC","Quantity","Assessable Value (CIF INR)","GST Taxable Value (for E-Way)","Calculated IGST"]} money={money}/></section>}
+function DataTable({title,rows,columns,money}){return <section className="table-section"><div className="table-heading"><h2>{title}</h2><span>{rows.length} records</span></div><div className="table-scroll"><table><thead><tr>{columns.map(c=><th key={c}>{c}</th>)}</tr></thead><tbody>{rows.map((r,i)=><tr key={i}>{columns.map(c=><td key={c}>{typeof r[c]==="number"&&/Value|Amount|Duty|IGST|BCD|SWS/.test(c)?"₹"+money(r[c]):String(r[c]??"—")}</td>)}</tr>)}</tbody></table></div></section>}
 
-      <main>{children}</main>
-
-      <footer className="footer">
-        <div>
-          <strong>BOE FLOW</strong>
-          <span>Customs BOE Processing & Automated E-Way Bill Reconciliation</span>
-        </div>
-        <div className="footer-links">
-          <Link to="/terms">Terms</Link>
-          <Link to="/privacy">Privacy</Link>
-          <Link to="/contact">Contact</Link>
-        </div>
-        <div className="footer-bottom">© 2026 BOE FLOW. All rights reserved.</div>
-      </footer>
-    </div>
-  );
-}
-
-function Home() {
-  return (
-    <>
-      <section className="hero">
-        <div className="hero-copy">
-          <div className="eyebrow"><ShieldCheck size={15} /> Customs workflow, simplified</div>
-          <h1>Bill of Entry processing without the paperwork headache.</h1>
-          <p>Process BOE documents, review HSN and customs duties, and prepare E-Way Bill data from one clean workspace.</p>
-          <div className="hero-actions">
-            <Link className="button primary" to="/process-boe">Process a BOE <ArrowRight size={18} /></Link>
-            <Link className="button secondary" to="/hsn-search">Search HSN</Link>
-          </div>
-        </div>
-
-        <div className="hero-panel">
-          <div className="panel-label">BOE FLOW</div>
-          <div className="flow-row"><FileText /><span>Upload Bill of Entry</span><b>01</b></div>
-          <div className="flow-row"><Search /><span>Extract & review</span><b>02</b></div>
-          <div className="flow-row"><Calculator /><span>Calculate duty</span><b>03</b></div>
-          <div className="flow-row"><ShieldCheck /><span>Prepare E-Way data</span><b>04</b></div>
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="section-heading">
-          <span className="eyebrow">One workspace</span>
-          <h2>Everything you need for import documentation.</h2>
-        </div>
-        <div className="feature-grid">
-          <Feature icon={<FileText />} title="BOE Processing" text="Upload a Bill of Entry and review the extracted document data in a structured format." />
-          <Feature icon={<Search />} title="HSN Search" text="Search tariff headings and review applicable customs information." />
-          <Feature icon={<Calculator />} title="Duty Review" text="Review assessable value, BCD, SWS, IGST and total payable duty." />
-        </div>
-      </section>
-    </>
-  );
-}
-
-function Feature({ icon, title, text }) {
-  return <article className="feature-card"><div className="feature-icon">{icon}</div><h3>{title}</h3><p>{text}</p><Link to="/process-boe">Explore <ArrowRight size={15} /></Link></article>;
-}
-
-function ProcessBOE() {
-  return <Page title="Process Bill of Entry" subtitle="Upload your BOE PDF and review the extracted customs information."><div className="upload-card"><FileText size={36} /><h2>Upload your BOE</h2><p>PDF files supported. Processing API will be connected in the next migration step.</p><label className="upload-button">Choose PDF<input type="file" accept=".pdf,application/pdf" /></label></div></Page>;
-}
-
-function HSN() { return <Page title="HSN Search" subtitle="Search Indian customs tariff information from a single interface."><div className="search-card"><input placeholder="Enter 4–8 digit HSN / CTH" /><button className="button primary">Search</button></div></Page>; }
-function Duty() { return <Page title="Duty Calculator" subtitle="Review customs duty components including BCD, SWS and IGST."><div className="empty-state"><Calculator size={32} /><h2>Calculator coming next</h2><p>The calculation engine will be connected to the existing Python logic without changing its results.</p></div></Page>; }
-function Page({ title, subtitle, children }) { return <section className="page"><div className="page-heading"><span className="eyebrow">BOE FLOW</span><h1>{title}</h1><p>{subtitle}</p></div>{children}</section>; }
-
-function SimplePage({ title }) { return <Page title={title} subtitle="This page will be connected as the new website is completed." />; }
-
-export default function App() {
-  return <Layout><Routes>
-    <Route path="/" element={<Home />} />
-    <Route path="/process-boe" element={<ProcessBOE />} />
-    <Route path="/hsn-search" element={<HSN />} />
-    <Route path="/duty-calculator" element={<Duty />} />
-    <Route path="/contact" element={<SimplePage title="Contact Us" />} />
-    <Route path="/terms" element={<SimplePage title="Terms & Conditions" />} />
-    <Route path="/privacy" element={<SimplePage title="Privacy Policy" />} />
-  </Routes></Layout>;
-}
+function HSN(){const[code,setCode]=useState(""),[country,setCountry]=useState(""),[loading,setLoading]=useState(false),[data,setData]=useState(null),[error,setError]=useState("");const search=async()=>{if(!code.trim())return;setLoading(true);setError("");try{const q=new URLSearchParams();if(country.trim())q.set("country",country.trim());const r=await fetch(API_URL+"/api/hsn/"+encodeURIComponent(code.trim())+"?"+q);const d=await r.json();if(!r.ok)throw Error(d.detail||"HSN search failed");setData(d)}catch(e){setError(e.message)}finally{setLoading(false)}};return <Page title="HSN Search" subtitle="Search the ICEGATE Trade Guide for tariff and duty information."><div className="search-card hsn-form"><input value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,""))} placeholder="Enter 4–8 digit HSN / CTH" maxLength={8}/><input value={country} onChange={e=>setCountry(e.target.value.toUpperCase().replace(/[^A-Z]/g,""))} placeholder="Country code (optional, e.g. KR)" maxLength={2}/><button className="button primary" onClick={search} disabled={loading}>{loading?"Searching…":"Search"}</button></div>{error&&<div className="error">{error}</div>}{data&&<div className="hsn-result"><div className="result-banner"><div><span>HSN / CTH</span><strong>{data.hsn_code}</strong></div><div><span>Country</span><strong>{data.country_name||"All"}</strong></div><div><span>Source</span><strong>ICEGATE</strong></div></div><h2>{data.description||"Description not returned"}</h2><p className="muted">Import policy: {data.import_policy||"Not specified"}</p><DataTable title="Duty Records" rows={data.duty_records||[]} columns={["duty","tariff_rate","effective_rate","amount"]}/></div>}</Page>}
+function Duty(){return <Page title="Duty Calculator" subtitle="Review customs duty components from your BOE data."><div className="empty-state"><Calculator size={32}/><h2>Use Process BOE for document-based duty review</h2><p>The existing Python calculation engine is connected to the BOE processing API.</p><Link className="button primary" to="/process-boe">Process BOE <ArrowRight size={16}/></Link></div></Page>}
+function Page({title,subtitle,children}){return <section className="page"><div className="page-heading"><span className="eyebrow">BOE FLOW</span><h1>{title}</h1><p>{subtitle}</p></div>{children}</section>}
+function SimplePage({title}){return <Page title={title} subtitle="BOE FLOW information page."/>}
+export default function App(){return <Layout><Routes><Route path="/" element={<Home/>}/><Route path="/process-boe" element={<ProcessBOE/>}/><Route path="/hsn-search" element={<HSN/>}/><Route path="/duty-calculator" element={<Duty/>}/><Route path="/contact" element={<SimplePage title="Contact Us"/>}/><Route path="/terms" element={<SimplePage title="Terms & Conditions"/>}/><Route path="/privacy" element={<SimplePage title="Privacy Policy"/>}/></Routes></Layout>}
