@@ -21,6 +21,7 @@ const fakeResponse = {
       "HSN Code": "39199090",
       UQC: "KGS",
       Quantity: 10,
+      "Assessable Value (CIF INR)": 90,
       "GST Taxable Value (for E-Way)": 100,
       "Calculated IGST": 18,
       "IGST Rate (%)": 18,
@@ -31,6 +32,7 @@ const fakeResponse = {
       "HSN Code": "39199090",
       UQC: "KGS",
       Quantity: 15,
+      "Assessable Value (CIF INR)": 190,
       "GST Taxable Value (for E-Way)": 200,
       "Calculated IGST": 36,
       "IGST Rate (%)": 18,
@@ -41,6 +43,7 @@ const fakeResponse = {
       "HSN Code": "39199090",
       UQC: "KGS",
       Quantity: 25,
+      "Assessable Value (CIF INR)": 280,
       "GST Taxable Value (for E-Way)": 300,
       "Calculated IGST": 54,
     },
@@ -133,6 +136,7 @@ test("builds NIC bulk JSON using backend grouped amounts", () => {
   assert.equal(bill.itemList[0].qtyUnit, "KGS");
   assert.equal(bill.itemList[0].taxableAmount, 300);
   assert.equal(bill.itemList[0].igstRate, 18);
+  assert.deepEqual(result.blockingErrors, [], "NIC builder blockers: " + JSON.stringify(result.warnings));
   assert.equal(result.ready, true);
 });
 
