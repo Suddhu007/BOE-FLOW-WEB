@@ -22,7 +22,7 @@ Backend:
 ```bash
 cd backend
 python -m venv .venv
-pip install -r requirements.txt
+pip install -r requirements-render.txt
 uvicorn main:app --reload --port 8000
 ```
 
