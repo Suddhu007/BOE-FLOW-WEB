@@ -9,6 +9,100 @@
   <link rel="stylesheet" href="/styles.css"><script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.js"></script>
   <style>
     body{font-family:Manrope,sans-serif;background:#07111f}.mono{font-family:"DM Mono",monospace}.grid-bg{background-image:linear-gradient(rgba(148,163,184,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.05) 1px,transparent 1px);background-size:42px 42px}.custom-scroll::-webkit-scrollbar{width:6px;height:6px}.custom-scroll::-webkit-scrollbar-thumb{background:#334155;border-radius:10px}
+
+    /* BOE FLOW refreshed visual system — clean customs SaaS workspace */
+    :root{color-scheme:light;--ink:#142b45;--muted:#64758b;--line:#dfe7ef;--teal:#087f8c;--teal-bright:#0d9488;--canvas:#f4f7fb}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth;scroll-padding-top:88px}
+    body{font-family:Manrope,system-ui,sans-serif!important;background:var(--canvas)!important;color:var(--ink)!important}
+    body> .fixed.pointer-events-none,body>div.fixed{display:none!important}
+    header{position:sticky!important;top:0;z-index:50!important;background:rgba(255,255,255,.94)!important;border-bottom:1px solid #e4eaf1!important;box-shadow:0 4px 18px rgba(19,42,68,.045)!important;backdrop-filter:blur(16px)}
+    header>div{height:74px!important;max-width:1320px!important}
+    header b{color:#173b5d!important;letter-spacing:.12em!important;font-size:14px!important}
+    header small{color:#0d9488!important}
+    header nav a{color:#53677f!important;font-size:12px!important;transition:color .2s}
+    header nav a:hover{color:#087f8c!important}
+    header>a,header a[href="#workspace"]:last-child{background:#087f8c!important;color:#fff!important;border-radius:10px!important;box-shadow:0 5px 12px rgba(8,127,140,.16);padding:12px 17px!important}
+    header a[href="#workspace"]:last-child:hover{background:#066875!important}
+    main{background:linear-gradient(180deg,#f8fbfe 0%,#f3f7fb 54%,#fff 100%)!important}
+    main>section:first-child{max-width:1320px!important;padding-top:74px!important;padding-bottom:62px!important}
+    main>section:first-child>p:first-child{display:inline-flex;align-items:center;gap:9px;background:#e5f6f4;border:1px solid #c6ebe6;border-radius:999px;padding:8px 12px;color:#087f8c!important;font:700 10px 'DM Mono',monospace!important;letter-spacing:.12em!important}
+    main>section:first-child>p:first-child:before{content:'';width:7px;height:7px;background:#0d9488;border-radius:50%;box-shadow:0 0 0 4px #c8eee8}
+    main>section:first-child h1{max-width:850px!important;color:#163451!important;font-size:clamp(42px,5.4vw,70px)!important;line-height:1.08!important;letter-spacing:-.055em!important;margin-top:24px!important}
+    main>section:first-child h1 span{color:#078b87!important}
+    main>section:first-child>p:nth-of-type(2){color:#60738a!important;font-size:16px!important;line-height:1.85!important;max-width:690px!important}
+    main>section:first-child>div a:first-child{background:#087f8c!important;color:#fff!important;border-radius:10px!important;box-shadow:0 8px 18px rgba(8,127,140,.18);padding:14px 19px!important}
+    main>section:first-child>div a:first-child:hover{background:#066875!important}
+    main>section:first-child>div a:nth-child(2){border:1px solid #d5e0e9!important;color:#284760!important;background:#fff!important;border-radius:10px!important}
+    main>section:first-child>div.grid{border:1px solid #dfe7ef!important;background:#dfe7ef!important;border-radius:16px!important;gap:1px!important;box-shadow:0 14px 34px rgba(24,52,81,.055);overflow:hidden}
+    main>section:first-child>div.grid>div{background:#fff!important;padding:23px!important}
+    main>section:first-child>div.grid h2{color:#1a3b58!important;font-size:13px!important}
+    main>section:first-child>div.grid p{color:#718198!important}
+    main>section:first-child .mono{color:#078b87!important}
+    #workspace{background:#edf3f8!important;border-top:1px solid #e0e8ef!important;border-bottom:1px solid #e0e8ef!important;padding-top:60px!important;padding-bottom:64px!important}
+    #workspace>div{max-width:1320px!important}
+    #workspace h2{color:#183954!important;font-size:clamp(27px,3vw,36px)!important;letter-spacing:-.04em!important}
+    #workspace .mb-8>p{color:#6b7d91!important}
+    #workspace .grid.lg\\:grid-cols-12{align-items:stretch!important}
+    #workspace .lg\\:col-span-5{background:linear-gradient(145deg,#fff 0%,#f6fbfc 100%)!important;border:1px solid #d7e5eb!important;border-radius:18px!important;box-shadow:0 12px 32px rgba(28,58,83,.06);min-height:340px;padding:28px!important}
+    #workspace .lg\\:col-span-5>div>span:first-child{background:#dff5f1!important;color:#087f8c!important;border:1px solid #c5e9e3;border-radius:13px!important;width:52px!important;height:52px!important}
+    #workspace .lg\\:col-span-5 h3{color:#173b59!important;font-size:27px!important;letter-spacing:-.04em!important;line-height:1.2}
+    #workspace .lg\\:col-span-5 p{color:#63768b!important}
+    #workspace .lg\\:col-span-5 p.mono{color:#078b87!important}
+    #workspace .lg\\:col-span-5 .bg-teal-300{background:#087f8c!important;color:#fff!important;border-radius:10px!important}
+    #workspace .lg\\:col-span-5>input{cursor:pointer!important}
+    #duty-calculator{background:#fff!important;border:1px solid #dfe7ef!important;border-radius:18px!important;box-shadow:0 12px 32px rgba(28,58,83,.055);padding:28px!important}
+    #duty-calculator h3{color:#173b59!important;font-size:22px!important}
+    #duty-calculator label span{color:#64758b!important}
+    #duty-calculator input,#duty-calculator select{background:#f8fafc!important;color:#183954!important;border:1px solid #d8e2eb!important;border-radius:9px!important;padding:12px!important}
+    #duty-calculator>div:last-child{border-color:#dfe7ef!important;border-radius:12px!important}
+    #duty-calculator>div:last-child>div:first-child{background:#f7fafc!important}
+    #duty-calculator>div:last-child>div:first-child span{color:#27465f!important}
+    #duty-calculator>div:last-child>div:last-child{background:#dff5f1!important;color:#173b59!important}
+    #duty-calculator>div:last-child>div:last-child strong{color:#087f8c!important}
+    #duty-calculator .text-slate-500,#duty-calculator .text-slate-400{color:#667b91!important}
+    #boe-result{background:#fff!important;border:1px solid #dce6ed!important;border-radius:18px!important;box-shadow:0 14px 34px rgba(24,52,81,.07);color:#173b59!important}
+    #boe-result h3{color:#173b59!important}
+    #boe-result p{color:#63768b!important}
+    #boe-result table{color:#27465f!important}
+    #boe-result thead{background:#f3f7fa!important;color:#63768b!important}
+    #boe-result tbody tr{border-color:#e5ecf2!important}
+    #boe-result button{background:#087f8c!important;color:white!important;border-radius:9px!important}
+    #tariff{max-width:1320px!important;padding-top:72px!important;padding-bottom:76px!important}
+    #tariff h2{color:#173b59!important;letter-spacing:-.04em!important}
+    #tariff>div>div:first-child>p,#tariff .mono{color:#078b87!important}
+    #tariff>div>div:first-child>p:last-child{color:#667b91!important}
+    #tariff>div>div:last-child{background:#fff!important;border:1px solid #dfe7ef!important;border-radius:18px!important;box-shadow:0 12px 32px rgba(28,58,83,.05);padding:24px!important}
+    #tariff input{background:#f8fafc!important;color:#183954!important;border:1px solid #d8e2eb!important;border-radius:9px!important}
+    #tariff table{color:#284760!important}
+    #tariff tbody tr{border-color:#e5ecf2!important}
+    #tariff tbody td{color:#284760!important}
+    #tariff tbody td:first-child{color:#087f8c!important}
+    #tariff button{color:#087f8c!important}
+    :where(a,button,input,select):focus-visible{outline:3px solid #0d9488!important;outline-offset:3px!important}
+    button,a{transition:background-color .18s ease,color .18s ease,border-color .18s ease,transform .18s ease}
+    @media(max-width:767px){
+      header>div{height:66px!important;padding-left:16px!important;padding-right:16px!important}
+      header nav{display:none!important}
+      header a[href="#workspace"]:last-child{padding:10px 12px!important;font-size:11px!important}
+      main>section:first-child{padding:48px 18px 42px!important}
+      main>section:first-child h1{font-size:clamp(38px,10vw,54px)!important}
+      main>section:first-child>p:nth-of-type(2){font-size:14px!important}
+      main>section:first-child>div.grid{grid-template-columns:1fr!important}
+      main>section:first-child>div.grid>div{padding:18px!important}
+      #workspace{padding:42px 0!important}
+      #workspace>div{padding-left:16px!important;padding-right:16px!important}
+      #workspace .lg\\:col-span-5,#duty-calculator{padding:20px!important;border-radius:14px!important}
+      #workspace .lg\\:col-span-5{min-height:310px!important}
+      #workspace .lg\\:col-span-5 h3{font-size:24px!important}
+      #duty-calculator>div:last-child{grid-template-columns:1fr!important}
+      #boe-result{padding:18px!important;overflow:hidden}
+      #boe-result>div:first-child{flex-direction:column!important}
+      #boe-result button{align-self:flex-start}
+      #tariff{padding:48px 16px!important}
+      #tariff>div>div:last-child{padding:17px!important}
+    }
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
   </style>
 </head>
 <body class="min-h-screen bg-[#07111f] text-slate-200 selection:bg-teal-300 selection:text-slate-950">
