@@ -1,3 +1,4 @@
+import { copyText } from "./clipboard.js";
 import {
   checkGroupedTotals,
   displayValue,
@@ -338,32 +339,6 @@ function downloadExcel(response) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   } catch {
     window.alert("Could not create Excel download from the API response.");
-  }
-}
-
-function copyText(text, button) {
-  navigator.clipboard?.writeText(text).then(() => {
-    if (!button) return;
-    const oldText = button.textContent;
-    button.textContent = "Copied";
-    setTimeout(() => { button.textContent = oldText; }, 1300);
-  }).catch(() => fallbackCopy(text, button));
-}
-
-function fallbackCopy(text, button) {
-  const textarea = document.createElement("textarea");
-  textarea.value = text;
-  document.body.appendChild(textarea);
-  textarea.select();
-  try {
-    document.execCommand("copy");
-    if (button) {
-      const oldText = button.textContent;
-      button.textContent = "Copied";
-      setTimeout(() => { button.textContent = oldText; }, 1300);
-    }
-  } finally {
-    textarea.remove();
   }
 }
 
