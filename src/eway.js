@@ -139,6 +139,8 @@ function renderEwayItems() {
       + escapeHtml(formatMoney(sumGroupField(groups, "Calculated IGST"))) + "</th><th></th></tr>"
     : "";
 
+  renderIgstConsistencyCheck(groups, items);
+
   $("eway-items").querySelectorAll("[data-rate-index]").forEach((input) => {
     input.addEventListener("input", () => {
       const index = Number(input.dataset.rateIndex);
@@ -168,6 +170,28 @@ function findMatchingItems(group, items) {
     String(item["HSN Code"] ?? "").trim() === String(group["HSN Code"] ?? "").trim()
     && String(item.UQC ?? "").trim().toUpperCase() === String(group.UQC ?? "").trim().toUpperCase()
   );
+}
+
+function renderIgstConsistencyCheck(groups, items) {
+  const panel = $("eway-igst-check");
+  const groupedTotal = sumGroupField(groups, "Calculated IGST");
+  const itemValues = items.map((item) => toNumber(item["Calculated IGST"]));
+  const itemTotal = itemValues.length && itemValues.every((value) => value !== null)
+    ? itemValues.reduce((sum, value) => sum + value, 0)
+    : null;
+
+  panel.classList.remove("hidden");
+  if (groupedTotal === null || itemTotal === null) {
+    panel.classList.add("error");
+    panel.textContent = "IGST consistency check unavailable: one or more item or grouped Calculated IGST values are missing.";
+    return;
+  }
+
+  const matches = Math.abs(groupedTotal - itemTotal) < 0.011;
+  panel.classList.toggle("error", !matches);
+  panel.textContent = (matches ? "✓ IGST totals match" : "⚠ IGST totals differ")
+    + " — grouped Calculated IGST: " + formatMoney(groupedTotal)
+    + "; item-line Calculated IGST sum: " + formatMoney(itemTotal) + ".";
 }
 
 function renderUnitMapping() {
