@@ -188,7 +188,10 @@ function drawItems(state) {
 
 function formatItemField(key, value) {
   if (isMissing(value)) return "—";
-  if (NUMBER_FIELDS.has(key)) return key.includes("Rate") ? formatRate(value) : formatMoney(value);
+  if (NUMBER_FIELDS.has(key)) {
+    if (key === "Quantity") return formatQuantity(value);
+    return key.includes("Rate") ? formatRate(value) : formatMoney(value);
+  }
   return String(value);
 }
 
