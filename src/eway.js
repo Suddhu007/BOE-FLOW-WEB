@@ -1,12 +1,11 @@
 import { state } from "./state.js";
-import { buildNicBulkJson, NIC_BULK_TEMPLATE } from "./eway-json.js";
+import { buildNicBulkJson } from "./eway-json.js";
 import {
   displayValue,
   formatMoney,
   formatQuantity,
   formatUqcMappingRows,
   isMissing,
-  mapUqcToNic,
   parseInrAmount,
   toNumber,
 } from "./formatters.js";
