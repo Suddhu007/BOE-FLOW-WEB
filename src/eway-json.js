@@ -127,15 +127,15 @@ export function buildNicBulkJson({ response, form, confirmedMixedRates = {} }) {
   validateStateCode(toStateCode, "To state code", warnings, blockingErrors);
   validateStateCode(actualToStateCode, "Actual to state code", warnings, blockingErrors);
 
-  if (!/^\\d{2}[0-9A-Z]{13}$/.test(userGstin)) {
+  if (!/^\d{2}[0-9A-Z]{13}$/.test(userGstin)) {
     blockingErrors.push("User GSTIN");
     warnings.push("User GSTIN must be a verified 15-character GSTIN.");
   }
-  if (fromGstin !== "URP" && !/^\\d{2}[0-9A-Z]{13}$/.test(fromGstin)) {
+  if (fromGstin !== "URP" && !/^\d{2}[0-9A-Z]{13}$/.test(fromGstin)) {
     blockingErrors.push("From GSTIN");
     warnings.push("From GSTIN must be a verified GSTIN or URP for an unregistered supplier.");
   }
-  if (toGstin !== "URP" && !/^\\d{2}[0-9A-Z]{13}$/.test(toGstin)) {
+  if (toGstin !== "URP" && !/^\d{2}[0-9A-Z]{13}$/.test(toGstin)) {
     blockingErrors.push("To GSTIN");
     warnings.push("To GSTIN must be a verified GSTIN or URP for an unregistered recipient.");
   }
