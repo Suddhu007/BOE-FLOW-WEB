@@ -1,3 +1,4 @@
+import { copyText } from "./clipboard.js";
 import { formatMoney } from "./formatters.js";
 
 export function calculateDuties() {
@@ -20,7 +21,7 @@ export function calculateDuties() {
   document.getElementById("resTotal").textContent = formatMoney(total);
 }
 
-export function setupDutyCalculator(copyText) {
+export function setupDutyCalculator() {
   ["calcAssessable", "calcBcdRate", "calcIgstRate"].forEach((id) => {
     document.getElementById(id).addEventListener("input", calculateDuties);
     document.getElementById(id).addEventListener("change", calculateDuties);
