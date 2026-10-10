@@ -119,6 +119,26 @@ export function buildNicBulkJson({ response, form, confirmedMixedRates = {} }) {
   const toPincode = requiredNumber(form.toPincode, "To pincode", warnings, blockingErrors);
   const toStateCode = requiredNumber(form.toStateCode, "To state code", warnings, blockingErrors);
   const actualToStateCode = requiredNumber(form.actualToStateCode, "Actual to state code", warnings, blockingErrors);
+
+  validatePincode(fromPincode, "From pincode", warnings, blockingErrors);
+  validatePincode(toPincode, "To pincode", warnings, blockingErrors);
+  validateStateCode(fromStateCode, "From state code", warnings, blockingErrors);
+  validateStateCode(actualFromStateCode, "Actual from state code", warnings, blockingErrors);
+  validateStateCode(toStateCode, "To state code", warnings, blockingErrors);
+  validateStateCode(actualToStateCode, "Actual to state code", warnings, blockingErrors);
+
+  if (!/^\\d{2}[0-9A-Z]{13}$/.test(userGstin)) {
+    blockingErrors.push("User GSTIN");
+    warnings.push("User GSTIN must be a verified 15-character GSTIN.");
+  }
+  if (fromGstin !== "URP" && !/^\\d{2}[0-9A-Z]{13}$/.test(fromGstin)) {
+    blockingErrors.push("From GSTIN");
+    warnings.push("From GSTIN must be a verified GSTIN or URP for an unregistered supplier.");
+  }
+  if (toGstin !== "URP" && !/^\\d{2}[0-9A-Z]{13}$/.test(toGstin)) {
+    blockingErrors.push("To GSTIN");
+    warnings.push("To GSTIN must be a verified GSTIN or URP for an unregistered recipient.");
+  }
   const transDistance = numericInput(form.transDistance);
   if (transDistance === null || transDistance < 0 || transDistance > 4000) {
     blockingErrors.push("Transport distance");
@@ -237,6 +257,8 @@ export function buildNicBulkJson({ response, form, confirmedMixedRates = {} }) {
       if (distinct.length === 1) entry[target] = distinct[0];
       else if (distinct.length > 1) {
         pushWarning(warnings, "Mixed " + source + " values in group " + (index + 1) + "; field omitted for manual review.");
+      } else {
+        pushWarning(warnings, source + " is not supplied by the BOE API for group " + (index + 1) + "; field omitted rather than assumed zero.");
       }
     }
 
@@ -356,6 +378,22 @@ export function buildNicBulkJson({ response, form, confirmedMixedRates = {} }) {
       })),
     },
   };
+}
+
+function validatePincode(value, label, warnings, errors) {
+  if (value === null) return;
+  if (!Number.isInteger(value) || value < 100000 || value > 999999) {
+    errors.push(label);
+    pushWarning(warnings, label + " must be a verified six-digit NIC pincode.");
+  }
+}
+
+function validateStateCode(value, label, warnings, errors) {
+  if (value === null) return;
+  if (!Number.isInteger(value) || value < 1 || value > 99) {
+    errors.push(label);
+    pushWarning(warnings, label + " must be a verified NIC state/territory code from 1 to 99.");
+  }
 }
 
 function parseDateKey(value) {
