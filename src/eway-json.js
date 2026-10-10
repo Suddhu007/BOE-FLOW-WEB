@@ -170,7 +170,7 @@ export function buildNicBulkJson({ response, form, confirmedMixedRates = {} }) {
 
     const unitCode = mapUqcToNic(group.UQC);
     if (!unitCode) {
-      pushWarning(warnings, "No confirmed NIC unit mapping for UQC "" + cleanString(group.UQC) + "" in group " + (index + 1) + "; qtyUnit will be empty.");
+      pushWarning(warnings, "No confirmed NIC unit mapping for UQC \"" + cleanString(group.UQC) + "\" in group " + (index + 1) + "; qtyUnit will be empty.");
     }
 
     const hsnCode = hsnAsString(group["HSN Code"]);
