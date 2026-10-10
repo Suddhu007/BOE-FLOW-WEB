@@ -1,5 +1,4 @@
 import pymupdf
-import pandas as pd
 import re
 
 def _number(value):
@@ -821,7 +820,13 @@ def process_complete_boe_portal(pdf_bytes):
         items = parse_icegate_page_stream(page_text, page)
         all_items.extend(items)
 
-    df_items = pd.DataFrame(all_items).drop_duplicates(subset=["Item No"]).sort_values("Item No").reset_index(drop=True)
+    unique_items = {}
+    for item in all_items:
+        unique_items.setdefault(str(item.get("Item No", "")), item)
+    df_items = sorted(unique_items.values(), key=lambda item: str(item.get("Item No", "")))
+
+    def item_total(column):
+        return sum(float(item.get(column, 0) or 0) for item in df_items)
 
     # Normalize the supplier into the same two fields used by the
     # reference SEPFUST workbook.
@@ -838,10 +843,10 @@ def process_complete_boe_portal(pdf_bytes):
 
     # Document-level duty totals are derived from validated item rows. This
     # avoids confusing repeated summary cells with item-level 30.TOTAL DUTY.
-    document_bcd = round(df_items["BCD Amount"].sum(), 2)
-    document_sws = round(df_items["SWS Amount"].sum(), 2)
-    document_igst = round(df_items["IGST Amount"].sum(), 2)
-    document_total_duty = round(df_items["Item Total Duty"].sum(), 2)
+    document_bcd = round(item_total("BCD Amount"), 2)
+    document_sws = round(item_total("SWS Amount"), 2)
+    document_igst = round(item_total("IGST Amount"), 2)
+    document_total_duty = round(item_total("Item Total Duty"), 2)
 
     header = {
         "BOE Number": boe_no,

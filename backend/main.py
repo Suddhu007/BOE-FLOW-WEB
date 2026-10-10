@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import base64
-import json
 import logging
 import os
 from collections import defaultdict, deque
@@ -9,7 +8,6 @@ from threading import Lock
 from time import monotonic
 from typing import Optional
 
-import pandas as pd
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -121,27 +119,16 @@ async def process_boe(request: Request, file: UploadFile = File(...)):
     if header is None or df_items is None:
         raise HTTPException(status_code=422, detail="This PDF was not recognized as a valid Indian Customs Bill of Entry.")
 
-    if not isinstance(df_items, pd.DataFrame):
-        df_items = pd.DataFrame(df_items)
-
-    items = json.loads(df_items.to_json(orient="records", date_format="iso"))
-    if df_items.empty:
-        grouped = []
-    else:
-        grouped_df = (
-            df_items.groupby(["HSN Code", "UQC"], dropna=False)
-            .agg({
-                "Quantity": "sum",
-                "Assessable Value (CIF INR)": "sum",
-                "GST Taxable Value (for E-Way)": "sum",
-                "Calculated IGST": "sum",
-            })
-            .reset_index()
-        )
-        grouped = json.loads(grouped_df.to_json(orient="records"))
-
-    grouped_df = pd.DataFrame(grouped)
-    excel = build_excel(header, grouped_df, df_items)
+    items = list(df_items)
+    groups = {}
+    fields = ("Quantity", "Assessable Value (CIF INR)", "GST Taxable Value (for E-Way)", "Calculated IGST")
+    for item in items:
+        key = (item.get("HSN Code", ""), item.get("UQC", ""))
+        record = groups.setdefault(key, {"HSN Code": key[0], "UQC": key[1], **{field: 0 for field in fields}})
+        for field in fields:
+            record[field] += float(item.get(field, 0) or 0)
+    grouped = list(groups.values())
+    excel = build_excel(header, grouped, items)
     return {
         "filename": file.filename,
         "header": _jsonable(header),
