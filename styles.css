@@ -5,3 +5,44 @@
 @media(max-width:380px){.formgrid,.kvgrid{grid-template-columns:1fr}.metric{padding:11px}.metric strong{font-size:15px}.top-actions .btn{padding:7px}.brandmark{width:29px;height:29px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 @media print{.topbar,.no-print,button{display:none!important}.wrap{max-width:none;padding:0}.panel{box-shadow:none;break-inside:avoid}.panelbody{padding:8px}.data th{position:static}}
+
+
+/* E-Way NIC JSON review and confirmation controls */
+.rate-details {
+  margin: 8px 0;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--canvas);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font: 11px/1.6 "DM Mono", monospace;
+}
+.rate-confirm {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 800;
+}
+.rate-confirm input {
+  width: auto;
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+#eway-warnings ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+#eway-warnings li {
+  margin: 5px 0;
+}
+#eway-json {
+  min-height: 240px;
+}
+@media (max-width: 640px) {
+  .rate-confirm {
+    font-size: 10px;
+  }
+}
