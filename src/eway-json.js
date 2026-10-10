@@ -287,15 +287,15 @@ export function buildNicBulkJson({ response, form, confirmedMixedRates = {} }) {
     fromPlace: fromPlace,
     fromPincode: fromPincode,
     fromStateCode: fromStateCode,
-    actFromStateCode: actualFromStateCode,
+    actualFromStateCode: actualFromStateCode,
     toGstin: toGstin,
     toTrdName: cleanString(form.toTrdName || header["Importer Name"]),
     toAddr1: toAddr1,
     toPlace: toPlace,
     toPincode: toPincode,
     toStateCode: toStateCode,
-    actToStateCode: actualToStateCode,
-    transactionType: numericInput(form.transactionType),
+    actualToStateCode: actualToStateCode,
+    transType: numericInput(form.transactionType),
     totalValue: totalValue,
     igstValue: igstValue,
     transMode: transMode,
@@ -318,7 +318,7 @@ export function buildNicBulkJson({ response, form, confirmedMixedRates = {} }) {
     blockingErrors.push("Supply type / subtype / document type");
     warnings.push("Supply type, sub supply type and document type must use NIC master codes.");
   }
-  if (![1, 2, 3, 4].includes(bill.transactionType)) {
+  if (![1, 2, 3, 4].includes(bill.transType)) {
     blockingErrors.push("Transaction type");
     warnings.push("Transaction type must be a NIC code from 1 to 4.");
   }
