@@ -38,10 +38,10 @@ function groupedNumberTotal(groups, field) {
   return numbers.reduce((sum, value) => sum + value, 0);
 }
 
-function hsnAsNumber(value) {
+function hsnAsString(value) {
   if (isMissing(value)) return null;
   const digits = String(value).trim().replace(/\./g, "");
-  return /^\d{4,8}$/.test(digits) ? Number(digits) : null;
+  return /^\d{4,8}$/.test(digits) ? digits : null;
 }
 
 function pickUniqueDescription(itemLines) {
@@ -173,7 +173,7 @@ export function buildNicBulkJson({ response, form, confirmedMixedRates = {} }) {
       pushWarning(warnings, "No confirmed NIC unit mapping for UQC "" + cleanString(group.UQC) + "" in group " + (index + 1) + "; qtyUnit will be empty.");
     }
 
-    const hsnCode = hsnAsNumber(group["HSN Code"]);
+    const hsnCode = hsnAsString(group["HSN Code"]);
     if (hsnCode === null) {
       pushWarning(warnings, "HSN code for group " + (index + 1) + " is missing or not numeric; enter a verified HSN before upload.");
       blockingErrors.push("HSN code group " + (index + 1));
@@ -277,7 +277,7 @@ export function buildNicBulkJson({ response, form, confirmedMixedRates = {} }) {
   const bill = {
     userGstin: userGstin,
     supplyType: cleanString(form.supplyType),
-    subSupplyType: cleanString(form.subSupplyType),
+    subSupplyType: numericInput(form.subSupplyType),
     docType: cleanString(form.docType),
     docNo: cleanString(form.docNo || header["BOE Number"]),
     docDate: docDate,
@@ -298,8 +298,8 @@ export function buildNicBulkJson({ response, form, confirmedMixedRates = {} }) {
     transType: numericInput(form.transactionType),
     totalValue: totalValue,
     igstValue: igstValue,
-    transMode: transMode,
-    transDistance: transDistance === null ? "" : String(transDistance),
+    transMode: numericInput(transMode),
+    transDistance: transDistance,
     transporterName: cleanString(form.transporterName),
     transporterId: transporterId,
     transDocNo: transDocNo,
@@ -322,7 +322,7 @@ export function buildNicBulkJson({ response, form, confirmedMixedRates = {} }) {
     blockingErrors.push("Transaction type");
     warnings.push("Transaction type must be a NIC code from 1 to 4.");
   }
-  if (!["1", "2", "3", "4"].includes(transMode)) {
+  if (![1, 2, 3, 4].includes(numericInput(transMode))) {
     blockingErrors.push("Transport mode");
     warnings.push("Transport mode must be one of NIC codes 1, 2, 3 or 4.");
   }
