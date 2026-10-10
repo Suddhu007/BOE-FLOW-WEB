@@ -43,31 +43,6 @@ function getCurrentTab() {
   return match ? match[1] : "boe";
 }
 
-async function copyText(text, button) {
-  try {
-    await navigator.clipboard.writeText(text);
-    if (button) {
-      const oldText = button.textContent;
-      button.textContent = "Copied";
-      window.setTimeout(() => { button.textContent = oldText; }, 1300);
-    }
-  } catch {
-    const textarea = document.createElement("textarea");
-    textarea.value = text;
-    document.body.appendChild(textarea);
-    textarea.select();
-    try {
-      document.execCommand("copy");
-      if (button) {
-        const oldText = button.textContent;
-        button.textContent = "Copied";
-        window.setTimeout(() => { button.textContent = oldText; }, 1300);
-      }
-    } finally {
-      textarea.remove();
-    }
-  }
-}
 
 function setupThemeToggle() {
   const button = document.getElementById("theme-toggle");
@@ -112,7 +87,7 @@ function startApplication() {
   setupResultsTable({ state, navigate });
   setupUpload({ state, onProcessed });
   setupEway();
-  setupDutyCalculator(copyText);
+  setupDutyCalculator();
   setupHsnLookup();
   renderTabs();
   showApiHealth();
