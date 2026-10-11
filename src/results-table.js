@@ -50,6 +50,8 @@ const HEADER_FIELDS = [
   ["MAWB No", "MAWB"],
 ];
 
+const normalizedItemCache = new WeakMap();
+
 export function setupResultsTable({ state, navigate }) {
   document.querySelectorAll("#view-boe th[data-sort]").forEach((header) => {
     header.addEventListener("click", () => {
@@ -134,9 +136,17 @@ export function renderResultWorkspace(state) {
 
 function drawItems(state) {
   const query = document.getElementById("item-search").value.trim().toLowerCase();
-  let rows = state.items.map((item, index) => ({ item, index })).filter(({ item }) =>
-    !query || Object.values(item).some((value) => String(value ?? "").toLowerCase().includes(query))
-  );
+  let rows = state.items.map((item, index) => ({ item, index })).filter(({ item }) => {
+    if (!query) return true;
+    // Cache normalized field values in a WeakMap to avoid repeated Object.values calls,
+    // string coercions, and lowercasing per keystroke without mutating item objects.
+    let values = normalizedItemCache.get(item);
+    if (!values) {
+      values = Object.values(item).map((val) => String(val ?? "").toLowerCase());
+      normalizedItemCache.set(item, values);
+    }
+    return values.some((val) => val.includes(query));
+  });
 
   if (state.sortKey) {
     rows.sort((left, right) => {
