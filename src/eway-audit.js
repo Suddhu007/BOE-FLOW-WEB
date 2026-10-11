@@ -65,12 +65,12 @@ export function detectMixedRates(items) {
 
 export function checkHeaderIgst(header, items) {
   const headerValue = toNumber(header?.["IGST Total"]);
-  const itemTotal = sumBackendValues(
-    (Array.isArray(items) ? items : []).map((item) => ({
-      igst: item?.["IGST Amount"] ?? item?.["Calculated IGST"],
-    })),
-    "igst",
+  const itemValues = (Array.isArray(items) ? items : []).map((item) =>
+    toNumber(item?.["IGST Amount"]) ?? toNumber(item?.["Calculated IGST"])
   );
+  const itemTotal = itemValues.length && itemValues.every((value) => value !== null)
+    ? itemValues.reduce((sum, value) => sum + value, 0)
+    : null;
   const difference = headerValue !== null && itemTotal !== null
     ? headerValue - itemTotal
     : null;
