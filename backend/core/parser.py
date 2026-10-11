@@ -828,18 +828,13 @@ def process_complete_boe_portal(pdf_bytes):
     def item_total(column):
         return sum(float(item.get(column, 0) or 0) for item in df_items)
 
-    # Normalize the supplier into the same two fields used by the
-    # reference SEPFUST workbook.
-    supplier_name = "N/A"
-    supplier_address = supplier_info
-    if supplier_info and supplier_info != "N/A":
-        supplier_parts = supplier_info.split(" ", 1)
-        # Prefer the first PDF line as the supplier legal name. The existing
-        # supplier_info is already bound to the labelled supplier field.
-        supplier_name = supplier_info.split("  ", 1)[0].strip()
-        if "\n" in supplier_info:
-            supplier_name = supplier_info.split("\n", 1)[0].strip()
-            supplier_address = supplier_info.split("\n", 1)[1].strip()
+    # Normalize the supplier into Supplier Name and Supplier Address using AI / intelligent rule extraction.
+    try:
+        from .supplier_ai import parse_supplier_details
+    except ImportError:
+        from core.supplier_ai import parse_supplier_details
+
+    supplier_name, supplier_address = parse_supplier_details(supplier_info)
 
     # Document-level duty totals are derived from validated item rows. This
     # avoids confusing repeated summary cells with item-level 30.TOTAL DUTY.
