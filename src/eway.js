@@ -34,6 +34,10 @@ export function setupEway() {
   $("copy-json").addEventListener("click", copyNicJson);
   $("download-json").addEventListener("click", downloadNicJson);
 
+  ["ew-importer-state", "ew-importer-act-state"].forEach((id) => {
+    $(id).addEventListener("input", () => { $(id).dataset.userEdited = "true"; });
+  });
+
   document.querySelectorAll("#view-eway input, #view-eway select, #view-eway textarea")
     .forEach((input) => {
       input.addEventListener("input", () => {
