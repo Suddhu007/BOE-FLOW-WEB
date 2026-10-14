@@ -297,6 +297,98 @@ def _extract_duty_amounts_by_coordinates(page, n):
 
     return result
 
+
+def _extract_roll_material_fields(description):
+    """
+    Extract material fields from descriptions that state a roll/rol quantity.
+
+    Examples:
+      ADHESIVE TAPE JYA-SS100D(SW) (1000mmX100M) (6 ROLL) (...)
+      -> ADHESIVE TAPE, JYA-SS100D(SW), 1000MM X 100M, 6 ROLL
+
+    Customs Quantity/UQC are preserved separately because they may be in SQM
+    while the commercial pack quantity appears in the description.
+    """
+    text = re.sub(r"\s+", " ", str(description or "")).strip()
+    roll_match = re.search(r"\b(\d+(?:[.,]\d+)?)\s*ROL(?:L)?\b", text, re.IGNORECASE)
+    if not roll_match:
+        return {}
+
+    qty_text = roll_match.group(1).replace(",", "")
+    try:
+        roll_qty = float(qty_text)
+        if roll_qty.is_integer():
+            roll_qty = int(roll_qty)
+    except ValueError:
+        return {}
+
+    # Normalize common material families to the warehouse's preferred labels.
+    upper = text.upper()
+    type_match = None
+    for pattern, label in (
+        (r"\bPLASTIC\s+ADHESIVE\s+TAPE\b", "ADHESIVE TAPE"),
+        (r"\bADHESIVE\s+TAPE\b", "ADHESIVE TAPE"),
+        (r"\bPET\s+FILM\b", "PET FILM"),
+        (r"\bSPONGE\b", "SPONGE"),
+    ):
+        type_match = re.search(pattern, upper, re.IGNORECASE)
+        if type_match:
+            material_type = label
+            break
+    else:
+        # For other material families, use the leading words before the
+        # product code/size. Do not guess if the description is too short.
+        size_probe = re.search(r"\(?\s*\d+(?:\.\d+)?\s*MM\s*[X×]\s*\d+(?:\.\d+)?\s*M\b", upper)
+        prefix = text[:size_probe.start()] if size_probe else text[:roll_match.start()]
+        prefix = re.sub(r"\([^)]*\)", " ", prefix)
+        tokens = prefix.split()
+        if len(tokens) < 2:
+            material_type = tokens[0].upper() if tokens else ""
+            type_match = re.match(re.escape(material_type), upper) if material_type else None
+        else:
+            # Keep the first word(s) as the type and the final token as the
+            # likely part name, avoiding a hardcoded material-code catalogue.
+            material_type = " ".join(tokens[:-1]).strip().upper()
+            type_match = re.match(re.escape(material_type), upper, re.IGNORECASE)
+
+    size_match = re.search(
+        r"\(?\s*(\d+(?:\.\d+)?)\s*MM\s*[X×]\s*(\d+(?:\.\d+)?)\s*M\s*\)?",
+        text,
+        re.IGNORECASE,
+    )
+    size = (
+        f"{size_match.group(1)}MM X {size_match.group(2)}M"
+        if size_match
+        else ""
+    )
+
+    material_name = ""
+    if type_match:
+        remainder_start = type_match.end()
+        remainder_end = size_match.start() if size_match else roll_match.start()
+        remainder = text[remainder_start:remainder_end].strip(" :-,;")
+        # Remove bracketed descriptors that occur before the size/roll data.
+        remainder = re.sub(r"\([^)]*\)", " ", remainder)
+        remainder = re.sub(r"\s+", " ", remainder).strip(" :-,;")
+        # Product/material name is the first code-like token, including
+        # embedded hyphens and parenthetical suffixes such as (SW).
+        name_match = re.search(
+            r"[A-Za-z0-9][A-Za-z0-9._/-]*(?:\([A-Za-z0-9_-]+\))?",
+            remainder,
+        )
+        if name_match:
+            material_name = name_match.group(0).strip()
+
+    return {
+        "Material Type": material_type,
+        "Material Name": material_name,
+        "Size": size,
+        "Description Quantity": roll_qty,
+        "Description UQC": "ROLL",
+        "Roll Quantity": roll_qty,
+    }
+
+
 def parse_icegate_page_stream(page_text, page=None):
     """
     Parses item pages containing 1 or 2 items from the ICEGATE text stream.
@@ -495,9 +587,13 @@ def parse_icegate_page_stream(page_text, page=None):
 
         total_payable_duty = round(total_duty_amounts[k], 2)
 
+        description = descriptions[k]
+        material_fields = _extract_roll_material_fields(description)
+
         items.append({
             'Item No': item_sns[k],
-            'Description': descriptions[k],
+            'Description': description,
+            **material_fields,
             'HSN Code': hsn,
             'Country of Origin Code': coo_codes[k],
             'Quantity': qtys[k],
