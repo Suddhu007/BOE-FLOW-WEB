@@ -367,8 +367,7 @@ def _extract_roll_material_fields(description):
         remainder_start = type_match.end()
         remainder_end = size_match.start() if size_match else roll_match.start()
         remainder = text[remainder_start:remainder_end].strip(" :-,;")
-        # Remove bracketed descriptors that occur before the size/roll data.
-        remainder = re.sub(r"\([^)]*\)", " ", remainder)
+        # Keep suffixes in product codes, e.g. JYA-SS100D(SW).
         remainder = re.sub(r"\s+", " ", remainder).strip(" :-,;")
         # Product/material name is the first code-like token, including
         # embedded hyphens and parenthetical suffixes such as (SW).
