@@ -33,7 +33,7 @@ const MAIN_COLUMNS = [
 ];
 
 const NUMBER_FIELDS = new Set([
-  "Quantity", "Unit Price (FC)", "Assessable Value (CIF INR)", "BCD Amount",
+  "Quantity", "Description Quantity", "Roll Quantity", "Unit Price (FC)", "Assessable Value (CIF INR)", "BCD Amount",
   "SWS Amount", "IGST Amount", "GST Taxable Value (for E-Way)",
   "Calculated IGST", "BCD Rate (%)", "SWS Rate (%)", "IGST Rate (%)",
   "Item Total Duty", "Total Duty Payable (Incl. GST)", "Other Customs Duty",
@@ -170,7 +170,7 @@ function drawItems(state) {
         + (key === "Description" ? "desc" : "") + '" title="' + escapeHtml(displayValue(item[key], "—")) + '">'
         + escapeHtml(formatItemField(key, item[key])) + "</td>").join("")
       + "</tr>"
-  ).join("") || '<tr><td colspan="14" class="empty">No matching item lines.</td></tr>';
+  ).join("") || '<tr><td colspan="19" class="empty">No matching item lines.</td></tr>';
 
   document.getElementById("filtered-count").textContent = rows.length + " matching";
   document.getElementById("page-info").textContent = rows.length
@@ -194,7 +194,7 @@ function drawItems(state) {
 function formatItemField(key, value) {
   if (isMissing(value)) return "—";
   if (NUMBER_FIELDS.has(key)) {
-    if (key === "Quantity") return formatQuantity(value);
+    if (key === "Quantity" || key === "Description Quantity" || key === "Roll Quantity") return formatQuantity(value);
     return key.includes("Rate") ? formatRate(value) : formatMoney(value);
   }
   return String(value);
