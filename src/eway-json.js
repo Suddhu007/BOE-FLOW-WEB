@@ -325,6 +325,7 @@ export function buildNicBulkJson({ response, form, confirmedMixedRates = {} }) {
     transporterName: cleanString(form.transporterName),
     transporterId: transporterId,
     transDocNo: transDocNo,
+    transDocDate: transDocDate || "",
     vehicleNo: vehicleNo,
     vehicleType: vehicleType,
     totInvValue: totalInvoiceValue,

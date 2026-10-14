@@ -146,7 +146,12 @@
                   <th data-sort="Item No">Item no. ↕</th>
                   <th data-sort="HSN Code">HSN code ↕</th>
                   <th data-sort="Description">Description ↕</th>
-                  <th data-sort="Quantity">Quantity ↕</th>
+                  <th data-sort="Material Type">Material type ↕</th>
+                  <th data-sort="Material Name">Material name ↕</th>
+                  <th data-sort="Size">Roll size ↕</th>
+                  <th data-sort="Description Quantity">Description qty ↕</th>
+                  <th data-sort="Description UQC">Description unit ↕</th>
+                  <th data-sort="Quantity">Customs quantity ↕</th>
                   <th>UQC</th>
                   <th data-sort="Unit Price (FC)">Unit price (FC) ↕</th>
                   <th data-sort="Assessable Value (CIF INR)">Assessable value ↕</th>
@@ -241,257 +246,132 @@
       </div>
     </section>
     <section id="view-eway" class="hidden" role="tabpanel" aria-labelledby="tab-eway">
-      <div class="pagehead">
+      <div class="pagehead eway-pagehead">
         <div>
           <div class="eyebrow">Transport / Bulk upload preparation</div>
           <h1>E-Way Bill</h1>
-          <div class="muted">Complete transport details using current BOE data.</div>
+          <p class="muted">Review processed BOE values, complete transport details and prepare NIC bulk-upload JSON.</p>
         </div>
-        <button class="btn no-print" id="print-eway">Print</button>
+        <button class="btn no-print" id="print-eway" type="button">Print</button>
       </div>
+
       <div id="eway-empty" class="panel">
         <div class="empty">
           <h2>Process a BOE first</h2>
-          <p>The E-Way workspace uses grouped lines returned by the BOE API.</p>
-          <button class="btn primary" id="goto-boe">Go to BOE Processing</button>
+          <p>The E-Way workspace uses header, items and grouped lines returned by the processed BOE API.</p>
+          <button class="btn primary" id="goto-boe" type="button">Go to BOE Processing</button>
         </div>
       </div>
-      <div id="eway-content" class="hidden">
-        <div class="notice">Review all details before using JSON in an external portal. This tool prepares a draft only; it does not file an E-Way Bill with NIC.</div>
-        <section class="panel">
-          <div class="panelhead">
-            <h2>Part A · Document and parties</h2>
-            <span class="pill">NIC bulk schema · 17/06/2021</span>
+
+      <div id="eway-content" class="hidden eway-workspace">
+        <div class="notice eway-notice">Draft preparation only. Confirm all source data and current NIC template requirements before uploading. This page does not submit a bill to NIC.</div>
+
+        <section id="eway-stats" class="eway-stat-strip" aria-label="BOE and E-Way summary"></section>
+
+        <div class="eway-layout">
+          <div class="eway-column eway-source-column">
+            <section class="panel eway-card">
+              <div class="panelhead">
+                <div><h2>BOE declaration</h2><p class="small muted">Values shown from the processed API response.</p></div>
+                <span class="pill">API source</span>
+              </div>
+              <div class="panelbody">
+                <dl id="eway-boe-details" class="eway-meta-grid"></dl>
+                <div id="eway-header-igst-check" class="eway-audit" role="status"></div>
+              </div>
+            </section>
+
+            <section class="panel eway-card">
+              <div class="panelhead">
+                <div><h2>Grouped line items</h2><p class="small muted">One row per backend grouped[] entry. No client-side regrouping.</p></div>
+                <span id="eway-group-count" class="pill">—</span>
+              </div>
+              <div class="tablewrap eway-tablewrap" tabindex="0" aria-label="Scrollable grouped line items">
+                <table class="data eway-groups-table">
+                  <thead><tr>
+                    <th scope="col">HSN</th><th scope="col">UQC</th><th scope="col">Quantity</th>
+                    <th scope="col">Taxable value</th><th scope="col">Calculated IGST</th>
+                    <th scope="col">IGST rate / audit</th>
+                  </tr></thead>
+                  <tbody id="eway-items"></tbody>
+                  <tfoot id="eway-items-foot"></tfoot>
+                </table>
+              </div>
+              <div class="panelbody eway-audit-area">
+                <div id="eway-igst-check" class="eway-audit" role="status"></div>
+                <section id="eway-unit-mapping" class="eway-mapping" aria-labelledby="eway-mapping-heading"></section>
+              </div>
+            </section>
           </div>
-          <div class="panelbody formgrid">
-            <div class="field">
-              <label for="eway-supply">Supply type</label>
-              <select id="eway-supply">
-                <option value="I">Inward</option>
-                <option value="O">Outward</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="eway-subtype">Sub supply type</label>
-              <select id="eway-subtype">
-                <option value="2">Import</option>
-                <option value="1">Supply</option>
-                <option value="8">Others</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="eway-doctype">Document type</label>
-              <select id="eway-doctype">
-                <option value="BOE">Bill of Entry (BOE)</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="ew-docno">Document number</label>
-              <input id="ew-docno" data-source="header" data-key="BOE Number">
-            </div>
-            <div class="field">
-              <label for="ew-docdate">Document date (dd/mm/yyyy)</label>
-              <input id="ew-docdate" data-source="header" data-key="BOE Date" placeholder="dd/mm/yyyy">
-            </div>
-            <div class="field">
-              <label for="eway-transaction">Transaction type</label>
-              <select id="eway-transaction">
-                <option value="1">Regular</option>
-                <option value="2">Bill To - Ship To</option>
-                <option value="3">Bill From - Dispatch From</option>
-                <option value="4">Combination</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="ew-user-gstin">User GSTIN (requesting party)</label>
-              <input id="ew-user-gstin" placeholder="Enter the GSTIN used to generate the bill" autocomplete="off">
-            </div>
-            <div class="field">
-              <label for="ew-mode">Mode from BOE (reference only)</label>
-              <input id="ew-mode" data-source="header" data-key="Mode">
-            </div>
-            <div class="field">
-              <label for="ew-hawb">HAWB / MAWB (reference only)</label>
-              <input id="ew-hawb">
-            </div>
-            <div class="field">
-              <label for="ew-supplier-gstin">From GSTIN (supplier, URP if unregistered)</label>
-              <input id="ew-supplier-gstin" value="URP" autocomplete="off">
-            </div>
-            <div class="field">
-              <label for="ew-supplier-name">From trade name / supplier</label>
-              <input id="ew-supplier-name" data-source="header" data-key="Supplier Name">
-            </div>
-            <div class="field">
-              <label for="ew-supplier-address">From address line 1</label>
-              <textarea id="ew-supplier-address" data-source="header" data-key="Supplier Address">
-              </textarea>
-            </div>
-            <div class="field">
-              <label for="ew-from-place">From place</label>
-              <input id="ew-from-place" placeholder="Enter place; not present in all BOEs">
-            </div>
-            <div class="field">
-              <label for="ew-from-pincode">From pincode (required by NIC)</label>
-              <input id="ew-from-pincode" inputmode="numeric" maxlength="6" placeholder="Enter verified pincode">
-            </div>
-            <div class="field">
-              <label for="ew-supplier-state">From state code</label>
-              <input id="ew-supplier-state" inputmode="numeric" maxlength="2" value="99">
-            </div>
-            <div class="field">
-              <label for="ew-supplier-act-state">Actual from state code</label>
-              <input id="ew-supplier-act-state" inputmode="numeric" maxlength="2" value="99">
-            </div>
-            <div class="field">
-              <label for="ew-importer-gstin">To GSTIN / importer</label>
-              <input id="ew-importer-gstin" data-source="header" data-key="Importer GSTIN" autocomplete="off">
-            </div>
-            <div class="field">
-              <label for="ew-importer-name">To trade name / bill to</label>
-              <input id="ew-importer-name" data-source="header" data-key="Importer Name">
-            </div>
-            <div class="field">
-              <label for="ew-to-address">To address line 1</label>
-              <textarea id="ew-to-address" placeholder="Enter verified importer / ship-to address">
-              </textarea>
-            </div>
-            <div class="field">
-              <label for="ew-to-place">To place</label>
-              <input id="ew-to-place" placeholder="Enter verified place">
-            </div>
-            <div class="field">
-              <label for="ew-pincode">To pincode (ship to)</label>
-              <input id="ew-pincode" inputmode="numeric" maxlength="6" placeholder="Enter pincode">
-            </div>
-            <div class="field">
-              <label for="ew-importer-state">To state code</label>
-              <input id="ew-importer-state" inputmode="numeric" maxlength="2" placeholder="From GSTIN only if verified">
-            </div>
-            <div class="field">
-              <label for="ew-importer-act-state">Actual to state code</label>
-              <input id="ew-importer-act-state" inputmode="numeric" maxlength="2" placeholder="Enter verified code">
-            </div>
-            <div class="field">
-              <label for="ew-total-invoice-value">Total invoice value (INR, including taxes/charges)</label>
-              <input id="ew-total-invoice-value" inputmode="decimal" placeholder="Enter verified total invoice value">
-            </div>
-            <div class="field">
-              <label for="ew-cgst-value">CGST value (INR, if applicable)</label>
-              <input id="ew-cgst-value" inputmode="decimal" placeholder="Enter value if applicable">
-            </div>
-            <div class="field">
-              <label for="ew-sgst-value">SGST value (INR, if applicable)</label>
-              <input id="ew-sgst-value" inputmode="decimal" placeholder="Enter value if applicable">
-            </div>
-            <div class="field">
-              <label for="ew-cess-value">Cess value (INR, if applicable)</label>
-              <input id="ew-cess-value" inputmode="decimal" placeholder="Enter value if applicable">
-            </div>
+
+          <div class="eway-column eway-form-column">
+            <section class="panel eway-card">
+              <div class="panelhead"><div><h2>Part A · Document and parties</h2><p class="small muted">Prefill only from processed BOE data; editable where missing.</p></div><span class="pill">Part A</span></div>
+              <div class="panelbody eway-form">
+                <div class="field"><label for="eway-supply">Supply type</label><select id="eway-supply"><option value="">Select supply type</option><option value="I">Inward</option><option value="O">Outward</option></select><span class="field-error" id="error-eway-supply"></span></div>
+                <div class="field"><label for="eway-subtype">Sub supply type</label><select id="eway-subtype"><option value="">Select sub supply type</option><option value="2">Import</option><option value="1">Supply</option><option value="8">Others</option></select><span class="field-error" id="error-eway-subtype"></span></div>
+                <div class="field"><label for="eway-doctype">Document type</label><select id="eway-doctype"><option value="BOE">Bill of Entry</option></select></div>
+                <div class="field"><label for="ew-docno">Document number</label><input id="ew-docno" data-source="header" data-key="BOE Number" autocomplete="off" placeholder="Not in BOE data"><span class="field-error" id="error-ew-docno"></span></div>
+                <div class="field"><label for="ew-docdate">Document date</label><input id="ew-docdate" data-source="header" data-key="BOE Date" placeholder="Not in BOE data" autocomplete="off"><span class="field-error" id="error-ew-docdate"></span></div>
+                <div class="field"><label for="eway-transaction">Transaction type</label><select id="eway-transaction"><option value="">Select transaction type</option><option value="1">Regular</option><option value="2">Bill To – Ship To</option><option value="3">Bill From – Dispatch From</option><option value="4">Combination</option></select><span class="field-error" id="error-eway-transaction"></span></div>
+                <div class="field"><label for="ew-mode-arrival">Mode of arrival (from BOE)</label><input id="ew-mode-arrival" data-source="header" data-key="Mode" placeholder="Not in BOE data" autocomplete="off"></div>
+                <div class="field"><label for="ew-hawb">HAWB / MAWB</label><input id="ew-hawb" placeholder="Not in BOE data" autocomplete="off"></div>
+                <div class="field"><label for="ew-user-gstin">Requesting party GSTIN</label><input id="ew-user-gstin" autocomplete="off" placeholder="Enter verified GSTIN" data-validate="gstin"><span class="field-error" id="error-ew-user-gstin"></span></div>
+                <div class="field"><label for="ew-total-invoice-value">Total invoice value (INR)</label><input id="ew-total-invoice-value" inputmode="decimal" placeholder="Not in BOE data" autocomplete="off"><span class="field-help">Enter the verified invoice total in INR. This is not inferred from a foreign-currency invoice.</span><span class="field-error" id="error-ew-total-invoice-value"></span></div>
+                <div class="field"><label for="ew-supplier-gstin">Bill from · Supplier GSTIN</label><input id="ew-supplier-gstin" value="URP" autocomplete="off" data-validate="supplier-gstin"><span class="field-help">URP / state code 99 is the editable default for an unregistered supplier.</span><span class="field-error" id="error-ew-supplier-gstin"></span></div>
+                <div class="field"><label for="ew-supplier-state">Bill from · State code</label><input id="ew-supplier-state" inputmode="numeric" maxlength="2" value="99" autocomplete="off"><span class="field-error" id="error-ew-supplier-state"></span></div>
+                <div class="field"><label for="ew-supplier-act-state">Bill from · Actual state code</label><input id="ew-supplier-act-state" inputmode="numeric" maxlength="2" value="99" autocomplete="off"><span class="field-error" id="error-ew-supplier-act-state"></span></div>
+                <div class="field"><label for="ew-supplier-name">Bill from · Supplier name</label><input id="ew-supplier-name" data-source="header" data-key="Supplier Name" placeholder="Not in BOE data" autocomplete="off"></div>
+                <div class="field"><label for="ew-supplier-address">Bill from · Supplier address</label><textarea id="ew-supplier-address" data-source="header" data-key="Supplier Address" placeholder="Not in BOE data" rows="2"></textarea></div>
+                <div class="field"><label for="ew-from-place">Dispatch place</label><input id="ew-from-place" placeholder="Not in BOE data" autocomplete="off"></div>
+                <div class="field"><label for="ew-from-pincode">Dispatch pincode</label><input id="ew-from-pincode" inputmode="numeric" maxlength="6" placeholder="Enter verified 6-digit pincode" data-validate="pincode"><span class="field-error" id="error-ew-from-pincode"></span></div>
+                <div class="field"><label for="ew-importer-gstin">Bill to · Importer GSTIN</label><input id="ew-importer-gstin" data-source="header" data-key="Importer GSTIN" autocomplete="off" placeholder="Not in BOE data" data-validate="gstin"><span class="field-error" id="error-ew-importer-gstin"></span></div>
+                <div class="field"><label for="ew-importer-state">Bill to · State code</label><input id="ew-importer-state" inputmode="numeric" maxlength="2" placeholder="Derived from GSTIN when valid" autocomplete="off"><span class="field-error" id="error-ew-importer-state"></span></div>
+                <div class="field"><label for="ew-importer-act-state">Bill to · Actual state code</label><input id="ew-importer-act-state" inputmode="numeric" maxlength="2" placeholder="Not in BOE data" autocomplete="off"><span class="field-error" id="error-ew-importer-act-state"></span></div>
+                <div class="field"><label for="ew-importer-name">Bill to · Importer name</label><input id="ew-importer-name" data-source="header" data-key="Importer Name" placeholder="Not in BOE data" autocomplete="off"></div>
+                <div class="field"><label for="ew-to-address">Ship-to address</label><textarea id="ew-to-address" placeholder="Not in BOE data" rows="2"></textarea></div>
+                <div class="field"><label for="ew-to-place">Ship-to place</label><input id="ew-to-place" placeholder="Not in BOE data" autocomplete="off"></div>
+                <div class="field"><label for="ew-pincode">Ship-to pincode</label><input id="ew-pincode" inputmode="numeric" maxlength="6" placeholder="Enter verified 6-digit pincode" data-validate="pincode"><span class="field-error" id="error-ew-pincode"></span></div>
+                <div class="field"><label for="ew-cgst-value">CGST value (if applicable)</label><input id="ew-cgst-value" inputmode="decimal" placeholder="Not in BOE data" autocomplete="off"></div>
+                <div class="field"><label for="ew-sgst-value">SGST value (if applicable)</label><input id="ew-sgst-value" inputmode="decimal" placeholder="Not in BOE data" autocomplete="off"></div>
+                <div class="field"><label for="ew-cess-value">Cess value (if applicable)</label><input id="ew-cess-value" inputmode="decimal" placeholder="Not in BOE data" autocomplete="off"></div>
+              </div>
+            </section>
+
+            <section class="panel eway-card">
+              <div class="panelhead"><div><h2>Part B · Transport details</h2><p class="small muted">Enter verified movement details.</p></div><span class="pill">Part B</span></div>
+              <div class="panelbody eway-form">
+                <div class="field"><label for="ew-transport-mode">Transport mode</label><select id="ew-transport-mode"><option value="">Select transport mode</option><option value="1">Road</option><option value="2">Rail</option><option value="3">Air</option><option value="4">Ship</option></select><span class="field-error" id="error-ew-transport-mode"></span></div>
+                <div class="field"><label for="ew-distance">Distance (km)</label><input id="ew-distance" type="number" min="1" max="4000" placeholder="Enter distance" autocomplete="off"><span class="field-help">Validity estimate: one day per 200 km.</span><span class="field-error" id="error-ew-distance"></span></div>
+                <div class="field"><label for="ew-validity">Estimated validity</label><input id="ew-validity" readonly placeholder="Calculated after distance entry"></div>
+                <div class="field"><label for="ew-vehicle">Vehicle number</label><input id="ew-vehicle" placeholder="Enter vehicle number" autocomplete="off" data-validate="vehicle"><span class="field-error" id="error-ew-vehicle"></span></div>
+                <div class="field"><label for="ew-vehicle-type">Vehicle type</label><select id="ew-vehicle-type"><option value="">Select vehicle type</option><option value="R">Regular</option><option value="O">Over Dimensional Cargo</option></select><span class="field-error" id="error-ew-vehicle-type"></span></div>
+                <div class="field"><label for="ew-transporter">Transporter name</label><input id="ew-transporter" placeholder="Enter transporter name" autocomplete="off"></div>
+                <div class="field"><label for="ew-transporter-gstin">Transporter GSTIN / TRANSIN</label><input id="ew-transporter-gstin" placeholder="Enter transporter ID" autocomplete="off" data-validate="transporter"><span class="field-error" id="error-ew-transporter-gstin"></span></div>
+                <div class="field"><label for="ew-transport-doc">Transport document number</label><input id="ew-transport-doc" placeholder="Enter document number" autocomplete="off"><span class="field-error" id="error-ew-transport-doc"></span></div>
+                <div class="field"><label for="ew-transport-doc-date">Transport document date</label><input id="ew-transport-doc-date" placeholder="dd/mm/yyyy" autocomplete="off"><span class="field-error" id="error-ew-transport-doc-date"></span></div>
+              </div>
+            </section>
+
+            <section class="panel eway-card" id="eway-json-panel">
+              <div class="panelhead"><div><h2>NIC bulk-upload JSON</h2><p class="small muted">Bulk-generation schema: version 1.0.0621; official attribute/schema pack updated 17/06/2021. Developer API v1.03 is a separate format.</p></div><span class="pill">Draft only</span></div>
+              <div class="panelbody">
+                <div id="eway-warnings" class="notice hidden" role="alert"></div>
+                <pre id="eway-json" class="eway-json-preview" tabindex="0">Complete required fields, review the warnings and generate the JSON preview.</pre>
+              </div>
+            </section>
           </div>
-        </section>
-        <section class="panel">
-          <div class="panelhead">
-            <div>
-              <h2>Items · One line per backend HSN and UQC group</h2>
-              <div class="small muted">Taxable amount and IGST amount come from backend grouped[]; rates stay mixed until explicitly confirmed.</div>
-            </div>
-          </div>
-          <div class="tablewrap">
-            <table class="data">
-              <thead>
-                <tr>
-                  <th>HSN</th>
-                  <th>UQC</th>
-                  <th>Quantity</th>
-                  <th>Taxable amount (INR)</th>
-                  <th>Calculated IGST (INR)</th>
-                  <th>IGST rate / mixed-rate confirmation</th>
-                </tr>
-              </thead>
-              <tbody id="eway-items">
-              </tbody>
-              <tfoot id="eway-items-foot">
-              </tfoot>
-            </table>
-          </div>
-          <div class="panelbody">
-            <div id="eway-igst-check" class="notice hidden" role="status"></div>
-            <div id="eway-unit-mapping">
-            </div>
-          </div>
-        </section>
-        <section class="panel">
-          <div class="panelhead">
-            <h2>Part B · Transport details</h2>
-          </div>
-          <div class="panelbody formgrid">
-            <div class="field">
-              <label for="ew-transport-mode">Transport mode (NIC code)</label>
-              <select id="ew-transport-mode">
-                <option value="1">Road</option>
-                <option value="2">Rail</option>
-                <option value="3">Air</option>
-                <option value="4">Ship</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="ew-distance">Approximate distance (km)</label>
-              <input id="ew-distance" type="number" min="1" max="4000" placeholder="Enter distance">
-            </div>
-            <div class="field">
-              <label for="ew-validity">Calculated validity estimate</label>
-              <input id="ew-validity" readonly placeholder="Days based on distance">
-            </div>
-            <div class="field">
-              <label for="ew-vehicle">Vehicle number</label>
-              <input id="ew-vehicle" placeholder="Enter when applicable">
-            </div>
-            <div class="field">
-              <label for="ew-vehicle-type">Vehicle type</label>
-              <select id="ew-vehicle-type">
-                <option value="R">Regular</option>
-                <option value="O">Over Dimensional Cargo</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="ew-transporter">Transporter name</label>
-              <input id="ew-transporter" placeholder="Enter transporter name">
-            </div>
-            <div class="field">
-              <label for="ew-transporter-gstin">Transporter GSTIN / TRANSIN</label>
-              <input id="ew-transporter-gstin" placeholder="Enter transporter ID if applicable">
-            </div>
-            <div class="field">
-              <label for="ew-transport-doc">Transport document number</label>
-              <input id="ew-transport-doc" placeholder="LR / document number">
-            </div>
-            <div class="field">
-              <label for="ew-transport-doc-date">Transport document date</label>
-              <input id="ew-transport-doc-date" placeholder="dd/mm/yyyy">
-            </div>
-          </div>
-        </section>
-        <section class="panel">
-          <div class="panelhead">
-            <div>
-              <h2>NIC bulk-generation JSON</h2>
-              <div class="small muted">Bulk-tool format updated 17/06/2021; verify against the portal’s current downloaded template before upload.</div>
-            </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button id="generate-json" class="btn primary">Build NIC JSON</button>
-              <button id="copy-json" class="btn">Copy NIC JSON</button>
-              <button id="download-json" class="btn">Download JSON</button>
-            </div>
-          </div>
-          <div class="panelbody">
-            <div id="eway-warnings" class="notice hidden" role="alert">
-            </div>
-            <pre id="eway-json">Build the NIC-format JSON after completing the required fields and resolving mixed IGST rates.</pre>
-            <p class="footnote">NIC bulk schema pack referenced: E-Waybill Attributes, JSON Schema & Sample JSON File updated 17/06/2021. The separate developer API docs identify API v1.03; a bulk-upload file is not the encrypted API request. This tool creates a file only and does not submit it.</p>
-          </div>
-        </section>
+        </div>
       </div>
+
+      <footer id="eway-bottom-bar" class="eway-bottom-bar no-print">
+        <div class="eway-bottom-total"><span class="field-label">Total consignment value</span><strong id="eway-total-consignment" class="mono">Not in BOE data</strong><span class="field-help">Sum of grouped taxable value + grouped Calculated IGST</span></div>
+        <div class="eway-bottom-actions">
+          <button id="generate-json" class="btn" type="button">Generate JSON</button>
+          <button id="copy-json" class="btn" type="button">Copy JSON</button>
+          <button id="download-json" class="btn primary" type="button">Download JSON</button>
+        </div>
+      </footer>
     </section>
     <section id="view-duty" class="hidden" role="tabpanel" aria-labelledby="tab-duty">
       <div class="pagehead">
